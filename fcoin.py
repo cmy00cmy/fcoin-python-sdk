@@ -8,13 +8,16 @@ import json
 from collections import OrderedDict
 
 class Fcoin():
+    proxies = {
+            'http':'',
+            'https':'',
+            }
     def __init__(self,base_url = 'https://api.fcoin.com/v2/'):
         self.base_url = base_url
 
     def auth(self, key, secret):
         self.key = key
         self.secret = secret
-
 
     def public_request(self, method, api_url, **payload):
         """request public url"""
@@ -65,7 +68,7 @@ class Fcoin():
         }
 
         try:
-            r = requests.request(method, full_url, headers = headers, json=payload)
+            r = requests.request(method, full_url, headers = headers, json=payload, proxies = self.proxies)
 
             r.raise_for_status()
         except requests.exceptions.HTTPError as err:

@@ -65,7 +65,6 @@ class Fcoin():
 
         try:
             r = requests.request(method, full_url, headers = headers, json=payload)
-
             r.raise_for_status()
         except requests.exceptions.HTTPError as err:
             print(err)
@@ -105,7 +104,7 @@ class Fcoin():
 
     def list_orders(self, **payload):
         """get orders"""
-        return self.signed_request('GET','orders', **payload)
+        return self.signed_request('GET','orders')
 
     def create_order(self, **payload):
         """create order"""
@@ -118,6 +117,14 @@ class Fcoin():
     def sell(self, symbol, price, amount):
         """buy someting"""
         return self.create_order(symbol=symbol, side='sell', type='limit', price=str(price), amount=amount)
+
+    def buy_market(self,symbol, price, amount):
+        """buy someting"""
+        return self.create_order(symbol=symbol, side='buy', type='market', amount=amount)
+
+    def sell_market(self, symbol, price, amount):
+        """buy someting"""
+        return self.create_order(symbol=symbol, side='sell', type='market', amount=amount)
 
     def get_order(self,order_id):
         """get specfic order"""
