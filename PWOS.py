@@ -22,7 +22,7 @@ fcoin.proxies = {
     'http': 'http://127.0.0.1:8123',
     'https': 'http://127.0.0.1:8123',
     }
-fcoin.auth('be322e43f4fd4b28b255a5502b29efa5', '7c9c27e4a5bb41c4b1b3ba22024471db') 
+fcoin.auth('key', 'secret') 
 orders = []
 hold = 0 #持仓
 def main():
