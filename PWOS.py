@@ -12,6 +12,7 @@ from decimal import *
 import numpy as np
 import pandas as pd
 import talib
+from math import floor
 #if python3 use fcoin3
 from fcoin3 import Fcoin
 
@@ -23,11 +24,10 @@ fcoin.proxies = {
     'https': 'http://127.0.0.1:8123',
     }
 fcoin.auth('key', 'secret') 
-orders = []
-hold = 0 #balance_temp
+
 def main():
+    hold = round(float(getBalance()[1][1]), 2) #balance_temp
     buy = sell = []
-    hold = 0
     while(1):
         ohlcv = getOHLCV()
         ohlcv = ohlcv.sort_index(by='time')
@@ -36,25 +36,20 @@ def main():
         dif, dea, bar = talib.MACD(ohlcv.close, fastperiod = 12, slowperiod = 26, signalperiod = 9)
         
         print(bar.tail(10))
+        orders = []
         if bar[0] * bar[1] < 0:
-            if bar[0] < 0 and bar[1] > 0  and hold > 0:
-                orders.append(sell())
-            if bar[0] > 0 and bar[1] < 0:
-                orders.append(buy())
-        while(len(orders) > 0):
-            order = fcoin.get_order(orders[0])['data']
-            state = order['state']
-            dire = order['side']
-            if state == 'filled':
-                if dire == 'sell':
+            if bar[0] < 0 and bar[1] > 0  and hold > 1:
+                res = sellAct()
+                if res > 0:
                     hold = 0
-                else:
-                    hold = order['filled_amount']
-                orders.pop()
-            time.sleep(1)
+            if bar[0] > 0 and bar[1] < 0 and hold < 1:
+                res = buyAct()
+                if res > 0:
+                    hold = res
+        
         print('BALANCE NOW', getBalance())
         print('hold:', hold)
-        time.sleep(30)
+        time.sleep(10)
 
 def getOHLCV():
     datas = fcoin.get_candle('M1',pair)
@@ -81,31 +76,52 @@ def getBalance():
     #print(balances)
     return balances
 
-def sell():
-    ask, bid = getPrice()
-    amount = getBalance()[1][1]
-    round(float(amount) / ask, 2)
-    timeNow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    ask = str(round(Decimal(ask), 8))
-    print(timeNow, 'Create Order:<===sell，sell_price', ask, 'amount:', amount)
-    order = fcoin.sell(pair, ask, amount)
-    if order.shape <= 0:
-        print('CREATE ORDER(SELL) ERROR!!')
-        return []
-    return order['data']
+def sellAct():
+    while(1):
+        ask, bid = getPrice()
+        amount = getBalance()[1][1]
+        amount = floor(float(amount))
+        timeNow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        ask = str(round(Decimal(ask), 8))
+        print(timeNow, 'Create Order:<===sell，sell_price', ask, 'amount:', amount)
+        order = fcoin.sell(pair, ask, amount)
+        if len(order) <= 0:
+            print('CREATE ORDER(SELL) ERROR!!')
+            return -1
+        orderId = order['data']
+        count = 0
+        while(count < 10):
+            order = fcoin.get_order(orderId)['data']
+            state = order['state']
+            if state == 'filled':
+                return order['filled_amount']
+            time.sleep(1)
+            count += 1
+        print('Sell failure. Recreate the order!')
+    
 
-def buy():
-    ask, bid = getPrice()
-    amount = getBalance()[0][1]
-    amount = round(float(amount) / bid, 2)
-    timeNow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    bid = str(round(Decimal(bid), 8))
-    print(timeNow, 'Create Order:===>buy，buy_price', bid, 'amount:', amount)
-    order = fcoin.buy(pair, bid, amount)
-    if order.shape <= 0:
-        print('CREATE ORDER(BUY) ERROR!!')
-        return []
-    return order['data']
+def buyAct():
+    while(1):
+        ask, bid = getPrice()
+        amount = getBalance()[0][1]
+        amount = round(float(amount) / bid, 2)
+        timeNow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        bid = str(round(Decimal(bid), 8))
+        print(timeNow, 'Create Order:===>buy，buy_price', bid, 'amount:', amount)
+        order = fcoin.buy(pair, bid, amount)
+        if len(order) <= 0:
+            print('CREATE ORDER(BUY) ERROR!!')
+            return -1
+        orderId = order['data']
+        count = 0
+        while(count < 10):
+            order = fcoin.get_order(orderId)['data']
+            state = order['state']
+            if state == 'filled':
+                return order['filled_amount']
+            time.sleep(1)
+            count += 1
+        print('Buy failure. Recreate the order!')
 
 if __name__ == '__main__':
     main()

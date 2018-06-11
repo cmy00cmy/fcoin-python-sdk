@@ -69,6 +69,7 @@ class Fcoin():
         except requests.exceptions.HTTPError as err:
             print(err)
             print(r.text)
+            return {}
         if r.status_code == 200:
             return r.json()
 
