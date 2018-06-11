@@ -52,8 +52,8 @@ def main():
                     hold = order['filled_amount']
                 orders.pop()
             time.sleep(1)
-        print('当前持仓', getBalance())
-        print('当前hold', hold)
+        print('BALANCE NOW', getBalance())
+        print('hold:', hold)
         time.sleep(30)
 
 def getOHLCV():
