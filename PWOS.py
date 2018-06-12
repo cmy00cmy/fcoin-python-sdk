@@ -57,15 +57,25 @@ def main():
         
         logger.info(bar.tail(10))
         orders = []
-        if bar[0] * bar[1] < 0:
-            if bar[0] < 0 and bar[1] > 0  and hold > 1:
+        t10 = bar.tail(10)
+        if(sum(t10 > 0) < 10 and sum(t10 > 0) > 0):
+            if bar[0] < 0 and hold > 1:
                 res = sellAct()
                 if res > 0:
                     hold = 0
-            if bar[0] > 0 and bar[1] < 0 and hold < 1:
+            if bar[0] > 0 and hold < 1:
                 res = buyAct()
                 if res > 0:
                     hold = res
+#        if bar[0] * bar[1] < 0:
+#            if bar[0] < 0 and bar[1] > 0  and hold > 1:
+#                res = sellAct()
+#                if res > 0:
+#                    hold = 0
+#            if bar[0] > 0 and bar[1] < 0 and hold < 1:
+#                res = buyAct()
+#                if res > 0:
+#                    hold = res
         
         logger.info('BALANCE NOW')
         logger.info(getBalance())
