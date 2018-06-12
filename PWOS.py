@@ -14,6 +14,7 @@ import pandas as pd
 import talib
 from math import floor
 import logging
+import configparser
 #if python3 use fcoin3
 from fcoin3 import Fcoin
 
@@ -24,26 +25,30 @@ fcoin.proxies = {
     'http': 'http://127.0.0.1:8123',
     'https': 'http://127.0.0.1:8123',
     }
-fcoin.auth('key', 'secret') 
+conf = configparser.SafeConfigParser()
+conf.read('conf.ini')
+key = conf.get('fcoin', 'key')
+secret = conf.get('fcoin', 'secret')
+fcoin.auth(key, secret) 
 
 logger = logging.getLogger('mylogger') 
 logger.setLevel(logging.DEBUG) 
    
 fh = logging.FileHandler('PWOS.log') 
 fh.setLevel(logging.DEBUG) 
-#ch = logging.StreamHandler() 
-#ch.setLevel(logging.DEBUG) 
+ch = logging.StreamHandler() 
+ch.setLevel(logging.DEBUG) 
 formatter = logging.Formatter('[%(asctime)s][%(thread)d][%(filename)s][line: %(lineno)d][%(levelname)s] ## %(message)s')
 fh.setFormatter(formatter) 
-#ch.setFormatter(formatter) 
+ch.setFormatter(formatter) 
 logger.addHandler(fh) 
-#logger.addHandler(ch) 
+logger.addHandler(ch) 
 #logger.info('foorbar') 
 
 def main():
-    hold = round(float(getBalance()[1][1]), 2) #balance_temp
     buy = sell = []
     while(1):
+        hold = round(float(getBalance()[1][1]), 2)
         ohlcv = getOHLCV()
         ohlcv = ohlcv.sort_index(by='time')
         logger.info(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(ohlcv.head(1).time))))
@@ -62,9 +67,11 @@ def main():
                 if res > 0:
                     hold = res
         
-        logger.info('BALANCE NOW', getBalance())
-        logger.info('hold:', hold)
-        time.sleep(10)
+        logger.info('BALANCE NOW')
+        logger.info(getBalance())
+        logger.info('hold:')
+        logger.info(hold)
+        time.sleep(60)
 
 def getOHLCV():
     datas = fcoin.get_candle('M1',pair)
@@ -98,7 +105,11 @@ def sellAct():
         amount = floor(float(amount))
         timeNow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         ask = str(round(Decimal(ask), 8))
-        logger.info(timeNow, 'Create Order:<===sell，sell_price', ask, 'amount:', amount)
+        logger.info('Create Order:<===sell')
+        logger.info('sell_price')
+        logger.info(ask)
+        logger.info('amount:')
+        logger.info(amount)
         order = fcoin.sell(pair, ask, amount)
         if len(order) <= 0:
             logger.info('CREATE ORDER(SELL) ERROR!!')
@@ -112,6 +123,9 @@ def sellAct():
                 return order['filled_amount']
             time.sleep(1)
             count += 1
+        print(fcoin.cancel_order(order))
+        logger.info('Cancel sell order!')
+        logger.info(order)
         logger.info('Sell failure. Recreate the order!')
     
 
@@ -122,7 +136,11 @@ def buyAct():
         amount = round(float(amount) / bid, 2)
         timeNow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         bid = str(round(Decimal(bid), 8))
-        logger.info(timeNow, 'Create Order:===>buy，buy_price', bid, 'amount:', amount)
+        logger.info('Create Order:===>buy')
+        logger.info('buy_price')
+        logger.info(bid)
+        logger.info('amount:')
+        logger.info(amount)
         order = fcoin.buy(pair, bid, amount)
         if len(order) <= 0:
             logger.info('CREATE ORDER(BUY) ERROR!!')
@@ -136,6 +154,9 @@ def buyAct():
                 return order['filled_amount']
             time.sleep(1)
             count += 1
+        print(fcoin.cancel_order(order))
+        logger.info('Cancel buy order!')
+        logger.info(order)
         logger.info('Buy failure. Recreate the order!')
 
 if __name__ == '__main__':
