@@ -133,10 +133,14 @@ def sellAct():
                 return order['filled_amount']
             time.sleep(1)
             count += 1
-        print(fcoin.cancel_order(order))
-        logger.info('Cancel sell order!')
+        if fcoin.cancel_order(order) == 0:
+            logger.info('Cancel sell order!')
+        else :
+            logger.error('Cancel FAILED!')
+            return -1
         logger.info(order)
         logger.info('Sell failure. Recreate the order!')
+        time.sleep(2)
     
 
 def buyAct():
@@ -164,10 +168,14 @@ def buyAct():
                 return order['filled_amount']
             time.sleep(1)
             count += 1
-        print(fcoin.cancel_order(order))
-        logger.info('Cancel buy order!')
+        if fcoin.cancel_order(order) == 0:
+            logger.info('Cancel buy order!')
+        else :
+            logger.error('Cancel FAILED!')
+            return -1
         logger.info(order)
         logger.info('Buy failure. Recreate the order!')
+        time.sleep(2)
 
 if __name__ == '__main__':
     main()
