@@ -66,6 +66,7 @@ class Fcoin():
         try:
             r = requests.request(method, full_url, headers = headers, json=payload)
             r.raise_for_status()
+            time.sleep(1)
         except requests.exceptions.HTTPError as err:
             print(err)
             print(r.text)

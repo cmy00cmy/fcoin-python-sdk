@@ -1,3 +1,4 @@
 #! /bin/sh
 
-python3 PWOS.py >> PWOS.log &
+nohup python3 PWOS.py &
+#nohup python3 ./watchdog.sh &
